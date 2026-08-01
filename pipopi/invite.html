@@ -10,40 +10,67 @@
     background: #FDFDF8; color: #1A1A1A;
     display: flex; align-items: center; justify-content: center; }
   .card { text-align: center; padding: 32px 28px; max-width: 340px; }
-  .logo { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .logo { font-size: 28px; font-weight: 700; margin-bottom: 10px; }
   .logo .dot { color: #5FE6A3; }
   p { line-height: 1.7; color: #4A4A44; }
-  .btn { display: inline-block; margin-top: 20px; padding: 14px 28px;
+  .btn { display: block; margin-top: 16px; padding: 16px 20px;
     background: #5FE6A3; color: #1A1A1A; font-weight: 700; text-decoration: none;
-    border: 2.5px solid #1A1A1A; }
-  .sub { font-size: 12px; color: #8A8A82; margin-top: 24px; }
+    border: 2.5px solid #1A1A1A; font-size: 17px; }
+  .btn.sub-btn { background: #FFFFFF; font-weight: 400; font-size: 15px; }
+  .sub { font-size: 12px; color: #8A8A82; margin-top: 22px; }
 </style>
 </head>
 <body>
   <div class="card">
     <div class="logo">pipo<span class="dot">・</span>pi</div>
-    <p id="msg">ぴぽぴを ひらいています…</p>
-    <a id="storeLink" class="btn" href="https://apps.apple.com/app/id6784951197">
-      App Storeで ひらく
+    <p id="msg">なかまに しょうたいされました！</p>
+
+    <a id="storeLink" class="btn" href="https://apps.apple.com/jp/app/id6784951197">
+      App Storeで ダウンロード
     </a>
-    <p class="sub">アプリが なければ、App Storeに とびます</p>
+    <a id="appLink" class="btn sub-btn" href="#">
+      アプリを もっている ひとは こちら
+    </a>
+
+    <p class="sub" id="hint">
+      アプリを いれてから、もういちど このリンクを ひらいてね
+    </p>
   </div>
 <script>
-  // URL の ?code=XXXX を、アプリ用のカスタムスキームに引き継ぐ。
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('code');
-  const appUrl = code
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var code = params.get('code');
+  var appUrl = code
     ? 'pipopi://join?code=' + encodeURIComponent(code)
     : 'pipopi://';
-  document.getElementById('storeLink').href = 'https://apps.apple.com/app/id6784951197';
+  var storeUrl = 'https://apps.apple.com/jp/app/id6784951197';
 
-  // アプリが入っていれば開く。入っていなければ何も起きないので、
-  // 少し待ってから自動で App Store に切り替える（スマホのSafariのみ想定）。
-  window.location.href = appUrl;
-  setTimeout(function () {
-    document.getElementById('msg').textContent = 'アプリが みつかりませんでした';
-    window.location.href = 'https://apps.apple.com/app/id6784951197';
-  }, 1500);
+  document.getElementById('appLink').href = appUrl;
+  document.getElementById('storeLink').href = storeUrl;
+
+  var ua = navigator.userAgent || '';
+  var isIOS = /iPad|iPhone|iPod/.test(ua);
+  // LINE / Instagram / Facebook などのアプリ内ブラウザではカスタムスキームが
+  // 使えないことが多いので、自動起動は試さずボタンだけ見せる。
+  var inAppBrowser = /Line|Instagram|FBAN|FBAV|Twitter/i.test(ua);
+
+  if (!isIOS || inAppBrowser) return;
+
+  // 見えない iframe で開くと、アプリが無い時にエラーダイアログが出ない。
+  var tried = false;
+  function tryOpenApp() {
+    if (tried) return;
+    tried = true;
+    var iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = appUrl;
+    document.body.appendChild(iframe);
+    setTimeout(function () {
+      try { document.body.removeChild(iframe); } catch (e) {}
+    }, 1200);
+  }
+  tryOpenApp();
+})();
 </script>
 </body>
 </html>
