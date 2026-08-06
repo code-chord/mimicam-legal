@@ -42,18 +42,24 @@
   var appUrl = code
     ? 'pipopi://join?code=' + encodeURIComponent(code)
     : 'pipopi://';
-  var storeUrl = 'https://apps.apple.com/jp/app/id6784951197';
-
-  document.getElementById('appLink').href = appUrl;
-  document.getElementById('storeLink').href = storeUrl;
-
   var ua = navigator.userAgent || '';
   var isIOS = /iPad|iPhone|iPod/.test(ua);
+  var isAndroid = /Android/.test(ua);
+
+  // 端末に合わせてストアを出し分ける（Android版は公開後に有効になる）。
+  var storeUrl = isAndroid
+    ? 'https://play.google.com/store/apps/details?id=com.pipopi.pipopi'
+    : 'https://apps.apple.com/jp/app/id6784951197';
+
+  document.getElementById('appLink').href = appUrl;
+  var storeLink = document.getElementById('storeLink');
+  storeLink.href = storeUrl;
+  if (isAndroid) storeLink.textContent = 'Google Play で ダウンロード';
   // LINE / Instagram / Facebook などのアプリ内ブラウザではカスタムスキームが
   // 使えないことが多いので、自動起動は試さずボタンだけ見せる。
   var inAppBrowser = /Line|Instagram|FBAN|FBAV|Twitter/i.test(ua);
 
-  if (!isIOS || inAppBrowser) return;
+  if ((!isIOS && !isAndroid) || inAppBrowser) return;
 
   // 見えない iframe で開くと、アプリが無い時にエラーダイアログが出ない。
   var tried = false;
